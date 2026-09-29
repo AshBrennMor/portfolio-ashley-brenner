@@ -59,16 +59,9 @@
       return new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).text();
     }).then(function (text) {
       var pack = JSON.parse(text), html = pack.html.replace(/@@asset([0-9]+)@@/g, function (m, i) { return pack.assets[+i]; });
-      crypto.subtle.exportKey("raw", key).then(function (raw) {
-        try { sessionStorage.setItem("ab-key", btoa(String.fromCharCode.apply(null, new Uint8Array(raw)))); } catch (e) {}
-      }).finally(function () { document.open(); document.write(html); document.close(); });
+      document.open(); document.write(html); document.close();
     });
   }
-  // already opened in this tab: skip the password
-  try {
-    var saved = sessionStorage.getItem("ab-key");
-    if (saved) crypto.subtle.importKey("raw", b64(saved), "AES-GCM", true, ["decrypt"]).then(open).catch(function () { sessionStorage.removeItem("ab-key"); });
-  } catch (e) {}
   form.addEventListener("submit", function (e) {
     e.preventDefault(); err.hidden = true; go.disabled = true;
     keyFrom(pw.value).then(open).catch(function () { err.hidden = false; go.disabled = false; pw.select(); });
